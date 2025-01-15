@@ -1,16 +1,22 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Interactive Map with Layers and Information Box</title>
+  <title>Full-Screen Interactive Map</title>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
   <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden; /* Prevent scrolling */
+    }
     #map {
-      width: 100%;
-      height: 600px; /* Increased vertical height */
-      position: relative;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh; /* Full height of viewport */
     }
     .menu {
       background: white;
@@ -21,33 +27,19 @@
       z-index: 1;
       border-radius: 4px;
       display: flex;
+      flex-direction: column;
       gap: 10px;
-    }
-    .menu a {
-      color: #333;
-      text-decoration: none;
-      padding: 8px 12px;
-      border-radius: 4px;
-      background-color: rgba(240, 240, 240, 0.9);
-      border: 1px solid #ccc;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    .menu a.active {
-      font-weight: bold;
-      background-color: #ff6b6b; /* Highlight when toggled on */
-      color: white;
     }
     .description-box {
       position: absolute;
-      bottom: 20px;  /* Moved to the bottom-left corner */
+      bottom: 20px;
       left: 20px;
-      background: rgba(255, 99, 71, 0.4); /* More transparent */
-      padding: 10px;  /* Reduced padding */
+      background: rgba(255, 99, 71, 0.4); /* Transparent reddish background */
+      padding: 15px;
       color: white;
       font-family: Arial, sans-serif;
       border-radius: 8px;
-      width: 260px; /* Smaller box */
+      width: 280px;
       z-index: 2;
     }
     .description-box h4 {
@@ -57,6 +49,41 @@
     .description-box p {
       font-size: 14px;
       line-height: 1.5;
+    }
+    .info-panel {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      height: 80%; /* Take 80% of the height */
+      width: 300px;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      overflow-y: auto;
+      display: none; /* Hidden by default */
+      z-index: 3;
+      border-radius: 8px;
+    }
+    .info-panel h2 {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+    .info-panel p {
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    .close-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #ff6b6b;
+      border: none;
+      color: white;
+      font-size: 14px;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -68,13 +95,21 @@
     <p><strong>Themes</strong>: Represents key ideas and intersections of the project.</p>
     <p><strong>Objects, Stories, and Case Studies</strong>: Shares contextualized stories and research.</p>
   </div>
-  <div class="menu" id="menu"></div>
+  <div class="menu" id="menu">
+    <label><input type="checkbox" id="partner-institutions-toggle" checked> Partner Institutions</label>
+    <label><input type="checkbox" id="themes-toggle" checked> Themes</label>
+    <label><input type="checkbox" id="objects-stories-toggle" checked> Objects, Stories, and Case Studies</label>
+  </div>
+  <div class="info-panel" id="info-panel">
+    <button class="close-button" id="close-button">Close</button>
+    <h2 id="panel-title">Feature Information</h2>
+    <p id="panel-description">Click on a point to see detailed information.</p>
+  </div>
 
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <script>
     mapboxgl.accessToken = 'pk.eyJ1IjoiYW5keS1ydXRrb3dza2kiLCJhIjoiWDJRMFVUWSJ9.iHl6Cf0M79wmHQlfP6Bk8Q'; // Replace with your Mapbox token
 
-    // Initialize the map
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/mapbox/streets-v11',
@@ -82,18 +117,17 @@
       zoom: 10
     });
 
-    // Data for three layers
     const partnerInstitutionsLayer = {
       type: 'FeatureCollection',
       features: [
         {
           type: 'Feature',
-          properties: { name: 'Partner Institution A', layer: 'Partner Institutions' },
+          properties: { name: 'Partner Institution A', description: 'This is a description for Partner Institution A.', layer: 'Partner Institutions' },
           geometry: { type: 'Point', coordinates: [-118.2437, 34.0522] }
         },
         {
           type: 'Feature',
-          properties: { name: 'Partner Institution B', layer: 'Partner Institutions' },
+          properties: { name: 'Partner Institution B', description: 'This is a description for Partner Institution B.', layer: 'Partner Institutions' },
           geometry: { type: 'Point', coordinates: [-118.2537, 34.0622] }
         }
       ]
@@ -104,12 +138,12 @@
       features: [
         {
           type: 'Feature',
-          properties: { name: 'Theme A', layer: 'Themes' },
+          properties: { name: 'Theme A', description: 'This is a description for Theme A.', layer: 'Themes' },
           geometry: { type: 'Point', coordinates: [-118.2637, 34.0722] }
         },
         {
           type: 'Feature',
-          properties: { name: 'Theme B', layer: 'Themes' },
+          properties: { name: 'Theme B', description: 'This is a description for Theme B.', layer: 'Themes' },
           geometry: { type: 'Point', coordinates: [-118.2737, 34.0822] }
         }
       ]
@@ -120,19 +154,18 @@
       features: [
         {
           type: 'Feature',
-          properties: { name: 'Object and Story A', layer: 'Objects, Stories, and Case Studies' },
+          properties: { name: 'Object and Story A', description: 'This is a description for Object and Story A.', layer: 'Objects, Stories, and Case Studies' },
           geometry: { type: 'Point', coordinates: [-118.2837, 34.0922] }
         },
         {
           type: 'Feature',
-          properties: { name: 'Object and Story B', layer: 'Objects, Stories, and Case Studies' },
+          properties: { name: 'Object and Story B', description: 'This is a description for Object and Story B.', layer: 'Objects, Stories, and Case Studies' },
           geometry: { type: 'Point', coordinates: [-118.2937, 34.1022] }
         }
       ]
     };
 
     map.on('load', () => {
-      // Add sources and layers
       map.addSource('partner-institutions-source', { type: 'geojson', data: partnerInstitutionsLayer });
       map.addLayer({
         id: 'partner-institutions-points',
@@ -166,47 +199,37 @@
         }
       });
 
-      // Add interactivity for popups
+      // Handle toggles
+      document.getElementById('partner-institutions-toggle').addEventListener('change', (e) => {
+        map.setLayoutProperty('partner-institutions-points', 'visibility', e.target.checked ? 'visible' : 'none');
+      });
+      document.getElementById('themes-toggle').addEventListener('change', (e) => {
+        map.setLayoutProperty('themes-points', 'visibility', e.target.checked ? 'visible' : 'none');
+      });
+      document.getElementById('objects-stories-toggle').addEventListener('change', (e) => {
+        map.setLayoutProperty('objects-stories-points', 'visibility', e.target.checked ? 'visible' : 'none');
+      });
+
+      // Handle info panel
+      const infoPanel = document.getElementById('info-panel');
+      const panelTitle = document.getElementById('panel-title');
+      const panelDescription = document.getElementById('panel-description');
+      const closeButton = document.getElementById('close-button');
+
       ['partner-institutions-points', 'themes-points', 'objects-stories-points'].forEach((layer) => {
         map.on('click', layer, (e) => {
-          const coordinates = e.features[0].geometry.coordinates.slice();
-          const name = e.features[0].properties.name;
-          new mapboxgl.Popup()
-            .setLngLat(coordinates)
-            .setHTML(`<h4>${name}</h4><p>Layer: ${e.features[0].properties.layer}</p>`)
-            .addTo(map);
+          const feature = e.features[0].properties;
+          panelTitle.textContent = feature.name;
+          panelDescription.textContent = feature.description;
+          infoPanel.style.display = 'block';
         });
 
         map.on('mouseenter', layer, () => map.getCanvas().style.cursor = 'pointer');
         map.on('mouseleave', layer, () => map.getCanvas().style.cursor = '');
       });
 
-      // Add toggle buttons for layers
-      const toggleableLayers = ['partner-institutions-points', 'themes-points', 'objects-stories-points'];
-      const menu = document.getElementById('menu');
-
-      toggleableLayers.forEach((layerId) => {
-        const link = document.createElement('a');
-        link.href = '#';
-        link.textContent = layerId.split('-')[0].replace(/^\w/, (c) => c.toUpperCase()); // Display layer name
-        link.className = 'active';
-
-        link.onclick = function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-
-          const visibility = map.getLayoutProperty(layerId, 'visibility');
-
-          if (visibility === 'visible') {
-            map.setLayoutProperty(layerId, 'visibility', 'none');
-            this.className = '';
-          } else {
-            map.setLayoutProperty(layerId, 'visibility', 'visible');
-            this.className = 'active';
-          }
-        };
-
-        menu.appendChild(link);
+      closeButton.addEventListener('click', () => {
+        infoPanel.style.display = 'none';
       });
     });
   </script>
