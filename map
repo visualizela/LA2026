@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapbox Multiple Layers with Embedded Info Box</title>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+  <style>
+    #map {
+      width: 100%;
+      height: 500px;
+      position: relative;
+    }
+    .menu {
+      background: white;
+      padding: 10px;
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1;
+      border-radius: 4px;
+    }
+    .menu a {
+      display: block;
+      color: #333;
+      text-decoration: none;
+      padding: 5px 0;
+    }
+    .menu a.active {
+      font-weight: bold;
+    }
+    .description-box {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(255, 99, 71, 0.7); /* Tomato Red with transparency */
+      padding: 15px;
+      color: white;
+      font-family: Arial, sans-serif;
+      border-radius: 8px;
+      width: 250px;
+      z-index: 2; /* Ensures it stays above the map */
+    }
+  </style>
+</head>
+<body>
+  <div id="map">
+    <div class="description-box" id="description-box">
+      <h4>Map Information</h4>
+      <p id="description-text">My Map</p>
+    </div>
+  </div>
+  <div class="menu" id="menu"></div>
+
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYW5keS1ydXRrb3dza2kiLCJhIjoiWDJRMFVUWSJ9.iHl6Cf0M79wmHQlfP6Bk8Q'; // Replace with your API key
+
+    // Initialize the map
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [-118.2437, 34.0522], // Los Angeles
+      zoom: 10
+    });
+
+    // Data for three layers
+    const pointsLayer1 = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { name: 'Point A', layer: 'Layer 1' },
+          geometry: { type: 'Point', coordinates: [-118.2437, 34.0522] }
+        },
+        {
+          type: 'Feature',
+          properties: { name: 'Point B', layer: 'Layer 1' },
+          geometry: { type: 'Point', coordinates: [-118.2537, 34.0622] }
+        }
+      ]
+    };
+
+    const pointsLayer2 = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { name: 'Point C', layer: 'Layer 2' },
+          geometry: { type: 'Point', coordinates: [-118.2637, 34.0722] }
+        },
+        {
+          type: 'Feature',
+          properties: { name: 'Point D', layer: 'Layer 2' },
+          geometry: { type: 'Point', coordinates: [-118.2737, 34.0822] }
+        }
+      ]
+    };
+
+    const pointsLayer3 = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { name: 'Point E', layer: 'Layer 3' },
+          geometry: { type: 'Point', coordinates: [-118.2837, 34.0922] }
+        },
+        {
+          type: 'Feature',
+          properties: { name: 'Point F', layer: 'Layer 3' },
+          geometry: { type: 'Point', coordinates: [-118.2937, 34.1022] }
+        }
+      ]
+    };
+
+    map.on('load', () => {
+      // Add sources and layers for all three layers
+      map.addSource('layer1-source', { type: 'geojson', data: pointsLayer1 });
+      map.addLayer({
+        id: 'layer1-points',
+        type: 'circle',
+        source: 'layer1-source',
+        paint: {
+          'circle-radius': 8,
+          'circle-color': '#FF5733'
+        }
+      });
+
+      map.addSource('layer2-source', { type: 'geojson', data: pointsLayer2 });
+      map.addLayer({
+        id: 'layer2-points',
+        type: 'circle',
+        source: 'layer2-source',
+        paint: {
+          'circle-radius': 8,
+          'circle-color': '#33FF57'
+        }
+      });
+
+      map.addSource('layer3-source', { type: 'geojson', data: pointsLayer3 });
+      map.addLayer({
+        id: 'layer3-points',
+        type: 'circle',
+        source: 'layer3-source',
+        paint: {
+          'circle-radius': 8,
+          'circle-color': '#3375FF'
+        }
+      });
+
+      // Add interactivity for popups
+      ['layer1-points', 'layer2-points', 'layer3-points'].forEach((layer) => {
+        map.on('click', layer, (e) => {
+          const coordinates = e.features[0].geometry.coordinates.slice();
+          const name = e.features[0].properties.name;
+          new mapboxgl.Popup()
+            .setLngLat(coordinates)
+            .setHTML(`<h4>${name}</h4><p>Layer: ${e.features[0].properties.layer}</p>`)
+            .addTo(map);
+        });
+
+        map.on('mouseenter', layer, () => map.getCanvas().style.cursor = 'pointer');
+        map.on('mouseleave', layer, () => map.getCanvas().style.cursor = '');
+      });
+
+      // Layer descriptions
+      const layerDescriptions = {
+        'layer1-points': 'This is Layer 1, representing Point A and Point B in Los Angeles.',
+        'layer2-points': 'This is Layer 2, representing Point C and Point D with different data points.',
+        'layer3-points': 'This is Layer 3, representing Point E and Point F located further west.'
+      };
+
+      // Add toggleable buttons and update the description
+      const toggleableLayers = ['layer1-points', 'layer2-points', 'layer3-points'];
+      const menu = document.getElementById('menu');
+      const descriptionText = document.getElementById('description-text');
+
+      toggleableLayers.forEach((layerId) => {
+        const link = document.createElement('a');
+        link.href = '#';
+        link.textContent = `Toggle ${layerId}`;
+        link.className = 'active';
+
+        link.onclick = function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const visibility = map.getLayoutProperty(layerId, 'visibility');
+
+          if (visibility === 'visible') {
+            map.setLayoutProperty(layerId, 'visibility', 'none');
+            this.className = '';
+            descriptionText.textContent = 'My Map'; // Reset description when layer is hidden
+          } else {
+            map.setLayoutProperty(layerId, 'visibility', 'visible');
+            this.className = 'active';
+            descriptionText.textContent = layerDescriptions[layerId]; // Update description
+          }
+        };
+
+        menu.appendChild(link);
+      });
+    });
+  </script>
+</body>
+</html>
