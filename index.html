@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mapbox Multiple Layers with Embedded Info Box</title>
+  <title>Interactive Map with Layers and Embedded Information Box</title>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
   <style>
     #map {
@@ -33,13 +33,19 @@
       position: absolute;
       bottom: 20px;
       left: 20px;
-      background: rgba(255, 99, 71, 0.7); /* Tomato Red with transparency */
-      padding: 15px;
+      background: rgba(255, 99, 71, 0.6); /* More transparent */
+      padding: 20px; /* Larger padding */
       color: white;
       font-family: Arial, sans-serif;
       border-radius: 8px;
-      width: 250px;
-      z-index: 2; /* Ensures it stays above the map */
+      width: 300px; /* Larger width */
+      z-index: 2; /* Ensure above map */
+    }
+    .description-box h4 {
+      font-size: 20px; /* Slightly larger title */
+    }
+    .description-box p {
+      font-size: 16px; /* Slightly larger text */
     }
   </style>
 </head>
@@ -47,14 +53,14 @@
   <div id="map">
     <div class="description-box" id="description-box">
       <h4>Map Information</h4>
-      <p id="description-text">My Map</p>
+      <p id="description-text">Welcome! Explore layers of Partner Institutions, Themes, and Objects, Stories, and Case Studies.</p>
     </div>
   </div>
   <div class="menu" id="menu"></div>
 
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <script>
-    mapboxgl.accessToken = 'pk.eyJ1IjoiYW5keS1ydXRrb3dza2kiLCJhIjoiWDJRMFVUWSJ9.iHl6Cf0M79wmHQlfP6Bk8Q'; // Replace with your API key
+    mapboxgl.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN'; // Replace with your API key
 
     // Initialize the map
     const map = new mapboxgl.Map({
@@ -65,83 +71,83 @@
     });
 
     // Data for three layers
-    const pointsLayer1 = {
+    const partnerInstitutionsLayer = {
       type: 'FeatureCollection',
       features: [
         {
           type: 'Feature',
-          properties: { name: 'Point A', layer: 'Layer 1' },
+          properties: { name: 'Partner Institution A', layer: 'Partner Institutions' },
           geometry: { type: 'Point', coordinates: [-118.2437, 34.0522] }
         },
         {
           type: 'Feature',
-          properties: { name: 'Point B', layer: 'Layer 1' },
+          properties: { name: 'Partner Institution B', layer: 'Partner Institutions' },
           geometry: { type: 'Point', coordinates: [-118.2537, 34.0622] }
         }
       ]
     };
 
-    const pointsLayer2 = {
+    const themesLayer = {
       type: 'FeatureCollection',
       features: [
         {
           type: 'Feature',
-          properties: { name: 'Point C', layer: 'Layer 2' },
+          properties: { name: 'Theme A', layer: 'Themes' },
           geometry: { type: 'Point', coordinates: [-118.2637, 34.0722] }
         },
         {
           type: 'Feature',
-          properties: { name: 'Point D', layer: 'Layer 2' },
+          properties: { name: 'Theme B', layer: 'Themes' },
           geometry: { type: 'Point', coordinates: [-118.2737, 34.0822] }
         }
       ]
     };
 
-    const pointsLayer3 = {
+    const objectsStoriesLayer = {
       type: 'FeatureCollection',
       features: [
         {
           type: 'Feature',
-          properties: { name: 'Point E', layer: 'Layer 3' },
+          properties: { name: 'Object and Story A', layer: 'Objects, Stories, and Case Studies' },
           geometry: { type: 'Point', coordinates: [-118.2837, 34.0922] }
         },
         {
           type: 'Feature',
-          properties: { name: 'Point F', layer: 'Layer 3' },
+          properties: { name: 'Object and Story B', layer: 'Objects, Stories, and Case Studies' },
           geometry: { type: 'Point', coordinates: [-118.2937, 34.1022] }
         }
       ]
     };
 
     map.on('load', () => {
-      // Add sources and layers for all three layers
-      map.addSource('layer1-source', { type: 'geojson', data: pointsLayer1 });
+      // Add sources and layers
+      map.addSource('partner-institutions-source', { type: 'geojson', data: partnerInstitutionsLayer });
       map.addLayer({
-        id: 'layer1-points',
+        id: 'partner-institutions-points',
         type: 'circle',
-        source: 'layer1-source',
+        source: 'partner-institutions-source',
         paint: {
           'circle-radius': 8,
           'circle-color': '#FF5733'
         }
       });
 
-      map.addSource('layer2-source', { type: 'geojson', data: pointsLayer2 });
+      map.addSource('themes-source', { type: 'geojson', data: themesLayer });
       map.addLayer({
-        id: 'layer2-points',
+        id: 'themes-points',
         type: 'circle',
-        source: 'layer2-source',
+        source: 'themes-source',
         paint: {
           'circle-radius': 8,
           'circle-color': '#33FF57'
         }
       });
 
-      map.addSource('layer3-source', { type: 'geojson', data: pointsLayer3 });
+      map.addSource('objects-stories-source', { type: 'geojson', data: objectsStoriesLayer });
       map.addLayer({
-        id: 'layer3-points',
+        id: 'objects-stories-points',
         type: 'circle',
-        source: 'layer3-source',
+        source: 'objects-stories-source',
         paint: {
           'circle-radius': 8,
           'circle-color': '#3375FF'
@@ -149,7 +155,7 @@
       });
 
       // Add interactivity for popups
-      ['layer1-points', 'layer2-points', 'layer3-points'].forEach((layer) => {
+      ['partner-institutions-points', 'themes-points', 'objects-stories-points'].forEach((layer) => {
         map.on('click', layer, (e) => {
           const coordinates = e.features[0].geometry.coordinates.slice();
           const name = e.features[0].properties.name;
@@ -165,20 +171,20 @@
 
       // Layer descriptions
       const layerDescriptions = {
-        'layer1-points': 'This is Layer 1, representing Point A and Point B in Los Angeles.',
-        'layer2-points': 'This is Layer 2, representing Point C and Point D with different data points.',
-        'layer3-points': 'This is Layer 3, representing Point E and Point F located further west.'
+        'partner-institutions-points': 'This layer highlights Partner Institutions and their contributions.',
+        'themes-points': 'This layer showcases key Themes related to the project.',
+        'objects-stories-points': 'This layer presents Objects, Stories, and Case Studies to enrich understanding.'
       };
 
       // Add toggleable buttons and update the description
-      const toggleableLayers = ['layer1-points', 'layer2-points', 'layer3-points'];
+      const toggleableLayers = ['partner-institutions-points', 'themes-points', 'objects-stories-points'];
       const menu = document.getElementById('menu');
       const descriptionText = document.getElementById('description-text');
 
       toggleableLayers.forEach((layerId) => {
         const link = document.createElement('a');
         link.href = '#';
-        link.textContent = `Toggle ${layerId}`;
+        link.textContent = `Toggle ${layerDescriptions[layerId].split(' ')[0]}`;
         link.className = 'active';
 
         link.onclick = function (e) {
@@ -190,7 +196,7 @@
           if (visibility === 'visible') {
             map.setLayoutProperty(layerId, 'visibility', 'none');
             this.className = '';
-            descriptionText.textContent = 'My Map'; // Reset description when layer is hidden
+            descriptionText.textContent = 'Welcome! Explore layers of Partner Institutions, Themes, and Case Studies.'; // Reset description
           } else {
             map.setLayoutProperty(layerId, 'visibility', 'visible');
             this.className = 'active';
