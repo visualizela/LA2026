@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +9,7 @@
   <style>
     #map {
       width: 100%;
-      height: 500px;
+      height: 600px; /* Increased vertical height */
       position: relative;
     }
     .menu {
@@ -19,34 +20,42 @@
       left: 10px;
       z-index: 1;
       border-radius: 4px;
+      display: flex;
+      gap: 10px;
     }
     .menu a {
-      display: block;
       color: #333;
       text-decoration: none;
-      padding: 5px 0;
+      padding: 8px 12px;
+      border-radius: 4px;
+      background-color: rgba(240, 240, 240, 0.9);
+      border: 1px solid #ccc;
+      cursor: pointer;
+      transition: background-color 0.3s;
     }
     .menu a.active {
       font-weight: bold;
+      background-color: #ff6b6b; /* Highlight when toggled on */
+      color: white;
     }
     .description-box {
       position: absolute;
-      top: 10px;  /* Moved to the top-left corner */
-      left: 10px;
-      background: rgba(255, 99, 71, 0.8); /* Slightly transparent */
-      padding: 15px;
+      bottom: 20px;  /* Moved to the bottom-left corner */
+      left: 20px;
+      background: rgba(255, 99, 71, 0.4); /* More transparent */
+      padding: 10px;  /* Reduced padding */
       color: white;
       font-family: Arial, sans-serif;
       border-radius: 8px;
-      width: 320px;
+      width: 260px; /* Smaller box */
       z-index: 2;
     }
     .description-box h4 {
-      font-size: 20px;
-      margin-bottom: 8px;
+      font-size: 18px;
+      margin-bottom: 6px;
     }
     .description-box p {
-      font-size: 16px;
+      font-size: 14px;
       line-height: 1.5;
     }
   </style>
@@ -55,15 +64,16 @@
   <div id="map"></div>
   <div class="description-box" id="description-box">
     <h4>Map Layers</h4>
-    <p><strong>Partner Institutions</strong>: This layer highlights partner institutions and their contributions.</p>
-    <p><strong>Themes</strong>: This layer showcases key themes related to the project.</p>
-    <p><strong>Objects, Stories, and Case Studies</strong>: This layer presents objects, stories, and case studies to enrich understanding.</p>
+    <p><strong>Partner Institutions</strong>: Highlights partner institutions and their contributions.</p>
+    <p><strong>Themes</strong>: Represents key ideas and intersections of the project.</p>
+    <p><strong>Objects, Stories, and Case Studies</strong>: Shares contextualized stories and research.</p>
   </div>
   <div class="menu" id="menu"></div>
 
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <script>
-    mapboxgl.accessToken = 'pk.eyJ1IjoiYW5keS1ydXRrb3dza2kiLCJhIjoiWDJRMFVUWSJ9.iHl6Cf0M79wmHQlfP6Bk8Q'; // Replace with your Mapbox token
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYW5keS1ydXRrb3dza2kiLCJhIjoiWDJRMFVUWSJ9.iHl6Cf0M79wmHQlfP6Bk8Q
+'; // Replace with your Mapbox token
 
     // Initialize the map
     const map = new mapboxgl.Map({
@@ -172,22 +182,14 @@
         map.on('mouseleave', layer, () => map.getCanvas().style.cursor = '');
       });
 
-      // Layer descriptions for interactivity
-      const layerDescriptions = {
-        'partner-institutions-points': 'Partner Institutions: Highlights contributions and connections.',
-        'themes-points': 'Themes: Represents key ideas and intersections of the project.',
-        'objects-stories-points': 'Objects, Stories, and Case Studies: Shares contextualized stories and research.'
-      };
-
-      // Add toggleable buttons and update the description
+      // Add toggle buttons for layers
       const toggleableLayers = ['partner-institutions-points', 'themes-points', 'objects-stories-points'];
       const menu = document.getElementById('menu');
-      const descriptionBox = document.getElementById('description-box');
 
       toggleableLayers.forEach((layerId) => {
         const link = document.createElement('a');
         link.href = '#';
-        link.textContent = `Toggle ${layerDescriptions[layerId].split(':')[0]}`;
+        link.textContent = layerId.split('-')[0].replace(/^\w/, (c) => c.toUpperCase()); // Display layer name
         link.className = 'active';
 
         link.onclick = function (e) {
@@ -211,5 +213,3 @@
   </script>
 </body>
 </html>
-
-
