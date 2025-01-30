@@ -34,9 +34,9 @@
             width: 300px;
         }
         .leaflet-tooltip {
-            font-size: 14px;
-            font-weight: bold;
-            background: rgba(255, 255, 255, 0.9);
+            font-size: 12px;
+            font-weight: normal;
+            background: rgba(255, 255, 255, 0.5);
             padding: 2px 5px;
             border-radius: 3px;
         }
@@ -71,11 +71,11 @@
 
         var themeColors = {
             "Partner Institutions": "#005500",  // Darker Green
-            "Indigenous History": "#FFA500",  // Orange
-            "Rebellions": "#FF0000",  // Red
-            "Path to Liberty": "#00BFFF",  // Cyan/Blue
-            "Environment": "#32CD32",  // Green
-            "Anniversaries": "#800080"  // Purple
+            "Indigenous History": "#FFA500",
+            "Rebellions": "#FF0000",
+            "Path to Liberty": "#00BFFF",
+            "Environment": "#32CD32",
+            "Anniversaries": "#800080"
         };
 
         var locations = [
@@ -91,6 +91,8 @@
 
         function addPoints() {
             locations.forEach(function(location) {
+                var tooltipDirection = location.name === "USC Special Collections and USC Fisher Museum of Art" ? "left" : "right";
+
                 var marker = L.circleMarker([location.lat, location.lon], {
                     radius: 6,
                     color: "#000000",
@@ -101,7 +103,7 @@
 
                 marker.bindTooltip(location.name, {
                     permanent: true,
-                    direction: "right",
+                    direction: tooltipDirection,
                     className: "leaflet-tooltip"
                 });
 
