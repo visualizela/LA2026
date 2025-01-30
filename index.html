@@ -33,26 +33,6 @@
             font-family: Arial, sans-serif;
             width: 350px;
         }
-        .popup-box {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 12px;
-            border-radius: 8px;
-            z-index: 1000;
-            font-family: Arial, sans-serif;
-            width: 280px;
-            display: none;
-            text-align: center;
-        }
-        .popup-image {
-            width: 100%;
-            max-width: 250px;
-            height: auto;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
         .leaflet-tooltip {
             font-size: 12px;
             font-weight: normal;
@@ -80,10 +60,6 @@
         <p id="info-text">Welcome to LA 2026. Please explore our partner institutions.</p>
     </div>
 
-    <div class="popup-box" id="popup-box">
-        <p id="popup-content"></p>
-    </div>
-
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([34.0575, -118.2061], 11);
@@ -100,15 +76,73 @@
             "Anniversaries": "Stories of commemoration build upon previous anniversaries, and how we remember helps us to shape our own futures."
         };
 
-        document.querySelectorAll('input[name="theme-filter"]').forEach(input => {
-            input.addEventListener('change', function() {
-                var selectedTheme = document.querySelector('input[name="theme-filter"]:checked').value;
-                document.getElementById("info-text").textContent = selectedTheme !== "Partner Institutions" ?
-                    themeDescriptions[selectedTheme] :
-                    "Welcome to LA 2026. Please explore our partner institutions.";
+        var themeColors = {
+            "Partner Institutions": "#005500",  
+            "Indigenous History": "#FFA500",  
+            "Rebellions": "#FF0000",  
+            "Path to Liberty": "#00BFFF",  
+            "Environment": "#32CD32",  
+            "Anniversaries": "#800080"  
+        };
+
+        var institutions = [
+            { name: "Autry Museum of the American West", lat: 34.1486, lon: -118.2851, themes: ["Indigenous History", "Rebellions", "Path to Liberty"] },
+            { name: "Natural History Museum of Los Angeles County", lat: 34.0168, lon: -118.2889, themes: ["Rebellions", "Path to Liberty"] },
+            { name: "USC Special Collections and USC Fisher Museum of Art", lat: 34.0219, lon: -118.2831, themes: ["Path to Liberty", "Environment", "Anniversaries"] },
+            { name: "Mission San Gabriel Arcángel", lat: 34.0964, lon: -118.1057, themes: ["Indigenous History", "Anniversaries"] },
+            { name: "The Huntington Library, Art Museum, and Botanical Gardens", lat: 34.1294, lon: -118.1144, themes: ["Indigenous History", "Rebellions", "Environment", "Anniversaries"] },
+            { name: "El Pueblo de Los Angeles Historical Monument", lat: 34.0561, lon: -118.2385, themes: ["Path to Liberty", "Environment", "Anniversaries"] }
+        ];
+
+        var institutionMarkers = {}, themeLines = {};
+
+        function addPoints() {
+            institutions.forEach(function(location) {
+                var tooltipDirection = location.name === "USC Special Collections and USC Fisher Museum of Art" ? "left" : "right";
+
+                var marker = L.circleMarker([location.lat, location.lon], {
+                    radius: 6,
+                    color: "#000000",
+                    fillColor: themeColors["Partner Institutions"],
+                    fillOpacity: 1,
+                    weight: 2
+                }).addTo(map);
+
+                marker.bindTooltip(location.name, {
+                    permanent: true,
+                    direction: tooltipDirection,
+                    className: "leaflet-tooltip"
+                });
+
+                institutionMarkers[location.name] = marker;
             });
+        }
+
+        function updateFilter() {
+            var selectedTheme = document.querySelector('input[name="theme-filter"]:checked').value;
+
+            Object.values(themeLines).forEach(line => map.removeLayer(line));
+            themeLines = {};
+
+            Object.keys(institutionMarkers).forEach(name => {
+                var marker = institutionMarkers[name];
+                var location = institutions.find(loc => loc.name === name);
+                var matchesTheme = location.themes.includes(selectedTheme);
+
+                marker.setStyle({
+                    fillColor: matchesTheme ? themeColors[selectedTheme] : themeColors["Partner Institutions"],
+                    fillOpacity: matchesTheme ? 1 : 0.3,
+                    radius: matchesTheme ? 10 : 6
+                });
+            });
+        }
+
+        document.querySelectorAll('input[name="theme-filter"]').forEach(input => {
+            input.addEventListener('change', updateFilter);
         });
 
+        addPoints();
+        updateFilter();
     </script>
 
 </body>
