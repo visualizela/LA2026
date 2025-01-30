@@ -1,0 +1,95 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Autry Museum of the American West",
+                "image_url": "https://raw.githubusercontent.com/visualizela/LA2026/refs/heads/main/photos/Autry2026.jpeg",
+                "themes": []
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.2813525,
+                    34.14857558
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Natural History Museum of Los Angeles County",
+                "image_url": "https://raw.githubusercontent.com/visualizela/LA2026/refs/heads/main/photos/NHM2026.jpeg",
+                "themes": []
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.2885562,
+                    34.01707356
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "USC Special Collections and USC Fisher Museum of Art",
+                "image_url": "https://raw.githubusercontent.com/visualizela/LA2026/refs/heads/main/photos/USC2026.jpeg",
+                "themes": []
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.2852662,
+                    34.02031271
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Mission San Gabriel Arc\u00e1ngel",
+                "image_url": "https://raw.githubusercontent.com/visualizela/LA2026/refs/heads/main/photos/MSG2026.jpeg",
+                "themes": []
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.1068304,
+                    34.09669521
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "The Huntington Library, Art Museum, and Botanical Gardens in San Marino",
+                "image_url": "https://raw.githubusercontent.com/visualizela/LA2026/refs/heads/main/photos/Huntington2026.jpeg",
+                "themes": []
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.1145135,
+                    34.12905398
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "El Pueblo de Los Angeles Historical Monument",
+                "image_url": "https://raw.githubusercontent.com/visualizela/LA2026/refs/heads/main/photos/Pueblo2026.jpeg",
+                "themes": []
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.2387577,
+                    34.05652447
+                ]
+            }
+        }
+    ]
+}
