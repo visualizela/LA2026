@@ -24,14 +24,34 @@
         }
         .info-box {
             position: absolute;
-            bottom: 40px;
+            bottom: 50px;
             left: 10px;
             background: rgba(255, 255, 255, 0.6);
             padding: 12px;
             border-radius: 8px;
             z-index: 1000;
             font-family: Arial, sans-serif;
-            width: 300px;
+            width: 350px;
+        }
+        .popup-box {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px;
+            border-radius: 8px;
+            z-index: 1000;
+            font-family: Arial, sans-serif;
+            width: 280px;
+            display: none;
+            text-align: center;
+        }
+        .popup-image {
+            width: 100%;
+            max-width: 250px;
+            height: auto;
+            border-radius: 5px;
+            margin-top: 10px;
         }
         .leaflet-tooltip {
             font-size: 12px;
@@ -60,98 +80,35 @@
         <p id="info-text">Welcome to LA 2026. Please explore our partner institutions.</p>
     </div>
 
+    <div class="popup-box" id="popup-box">
+        <p id="popup-content"></p>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        var map = L.map('map').setView([34.05, -118.25], 10);
+        var map = L.map('map').setView([34.0575, -118.2061], 11);
 
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: "© OpenStreetMap contributors",
-            subdomains: ["a", "b", "c"]
+        L.tileLayer("https://api.mapbox.com/styles/v1/andy-rutkowski/cjxmc019r1oif1cp6nf4r4bj0/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiYW5keS1ydXRrb3dza2kiLCJhIjoiWDJRMFVUWSJ9.iHl6Cf0M79wmHQlfP6Bk8Q", {
+            attribution: "Mapbox"
         }).addTo(map);
 
-        var themeColors = {
-            "Partner Institutions": "#005500",  // Darker Green
-            "Indigenous History": "#FFA500",
-            "Rebellions": "#FF0000",
-            "Path to Liberty": "#00BFFF",
-            "Environment": "#32CD32",
-            "Anniversaries": "#800080"
+        var themeDescriptions = {
+            "Indigenous History": "Native peoples had diverse and multifaceted experiences, unique cultures, and strategies for adapting to challenges. Local Indigenous communities remain vibrant to the present day in a county that has also over time become home to many other Native peoples from across the United States.",
+            "Rebellions": "Multiple rebellions and revolutions contributed to the shape and foundations of our current political system, in California and across the nation.",
+            "Path to Liberty": "The path to liberty and freedom was uneven; it did not move unilaterally from East to West across the continent, and it continues to this day.",
+            "Environment": "Contests between Indigenous and non-Indigenous communities have shaped the local environment, and the local ecosystem has often shaped human aspirations and actions.",
+            "Anniversaries": "Stories of commemoration build upon previous anniversaries, and how we remember helps us to shape our own futures."
         };
 
-        var locations = [
-            { name: "Autry Museum of the American West", lat: 34.1486, lon: -118.2851, themes: ["Indigenous History", "Rebellions", "Path to Liberty"] },
-            { name: "Natural History Museum of Los Angeles County", lat: 34.0168, lon: -118.2889, themes: ["Rebellions", "Path to Liberty"] },
-            { name: "USC Special Collections and USC Fisher Museum of Art", lat: 34.0219, lon: -118.2831, themes: ["Path to Liberty", "Environment", "Anniversaries"] },
-            { name: "Mission San Gabriel Arcángel", lat: 34.0964, lon: -118.1057, themes: ["Indigenous History", "Anniversaries"] },
-            { name: "The Huntington Library, Art Museum, and Botanical Gardens", lat: 34.1294, lon: -118.1144, themes: ["Indigenous History", "Rebellions", "Environment", "Anniversaries"] },
-            { name: "El Pueblo de Los Angeles Historical Monument", lat: 34.0561, lon: -118.2385, themes: ["Path to Liberty", "Environment", "Anniversaries"] }
-        ];
-
-        var institutionMarkers = {}, themeLines = {};
-
-        function addPoints() {
-            locations.forEach(function(location) {
-                var tooltipDirection = location.name === "USC Special Collections and USC Fisher Museum of Art" ? "left" : "right";
-
-                var marker = L.circleMarker([location.lat, location.lon], {
-                    radius: 6,
-                    color: "#000000",
-                    fillColor: themeColors["Partner Institutions"],
-                    fillOpacity: 1,
-                    weight: 2
-                }).addTo(map);
-
-                marker.bindTooltip(location.name, {
-                    permanent: true,
-                    direction: tooltipDirection,
-                    className: "leaflet-tooltip"
-                });
-
-                institutionMarkers[location.name] = marker;
-            });
-        }
-
-        function updateFilter() {
-            var selectedTheme = document.querySelector('input[name="theme-filter"]:checked').value;
-
-            Object.values(themeLines).forEach(line => map.removeLayer(line));
-            themeLines = {};
-
-            Object.keys(institutionMarkers).forEach(name => {
-                var marker = institutionMarkers[name];
-                var location = locations.find(loc => loc.name === name);
-                var matchesTheme = location.themes.includes(selectedTheme);
-
-                marker.setStyle({
-                    fillColor: matchesTheme ? themeColors[selectedTheme] : themeColors["Partner Institutions"],
-                    fillOpacity: matchesTheme ? 1 : 0.3,
-                    radius: matchesTheme ? 10 : 6
-                });
-            });
-
-            if (selectedTheme !== "Partner Institutions") {
-                var themeInstitutions = locations.filter(loc => loc.themes.includes(selectedTheme));
-                for (var i = 0; i < themeInstitutions.length - 1; i++) {
-                    var latlngs = [
-                        [themeInstitutions[i].lat, themeInstitutions[i].lon],
-                        [themeInstitutions[i + 1].lat, themeInstitutions[i + 1].lon]
-                    ];
-                    var line = L.polyline(latlngs, {
-                        color: themeColors[selectedTheme],
-                        weight: 2,
-                        opacity: 0.7
-                    }).addTo(map);
-                    themeLines[i] = line;
-                }
-            }
-        }
-
         document.querySelectorAll('input[name="theme-filter"]').forEach(input => {
-            input.addEventListener('change', updateFilter);
+            input.addEventListener('change', function() {
+                var selectedTheme = document.querySelector('input[name="theme-filter"]:checked').value;
+                document.getElementById("info-text").textContent = selectedTheme !== "Partner Institutions" ?
+                    themeDescriptions[selectedTheme] :
+                    "Welcome to LA 2026. Please explore our partner institutions.";
+            });
         });
 
-        addPoints();
-        updateFilter();
     </script>
 
 </body>
