@@ -33,6 +33,14 @@
             font-family: Arial, sans-serif;
             width: 350px;
         }
+        .popup-image {
+            width: 100%;
+            max-width: 250px;
+            height: auto;
+            border-radius: 5px;
+            display: block;
+            margin: 10px auto;
+        }
         .leaflet-tooltip {
             font-size: 12px;
             font-weight: normal;
@@ -86,63 +94,31 @@
         };
 
         var institutions = [
-            { name: "Autry Museum of the American West", lat: 34.1486, lon: -118.2851, themes: ["Indigenous History", "Rebellions", "Path to Liberty"] },
-            { name: "Natural History Museum of Los Angeles County", lat: 34.0168, lon: -118.2889, themes: ["Rebellions", "Path to Liberty"] },
-            { name: "USC Special Collections and USC Fisher Museum of Art", lat: 34.0219, lon: -118.2831, themes: ["Path to Liberty", "Environment", "Anniversaries"] },
-            { name: "Mission San Gabriel Arcángel", lat: 34.0964, lon: -118.1057, themes: ["Indigenous History", "Anniversaries"] },
-            { name: "The Huntington Library, Art Museum, and Botanical Gardens", lat: 34.1294, lon: -118.1144, themes: ["Indigenous History", "Rebellions", "Environment", "Anniversaries"] },
-            { name: "El Pueblo de Los Angeles Historical Monument", lat: 34.0561, lon: -118.2385, themes: ["Path to Liberty", "Environment", "Anniversaries"] }
+            { name: "Autry Museum of the American West", lat: 34.1486, lon: -118.2851, description: "A museum dedicated to the American West.", image: "https://example.com/autry.jpg", link: "https://theautry.org" },
+            { name: "Natural History Museum of Los Angeles County", lat: 34.0168, lon: -118.2889, description: "Exhibits on natural history, dinosaurs, and more.", image: "https://example.com/nhm.jpg", link: "https://nhm.org" },
+            { name: "USC Special Collections and USC Fisher Museum of Art", lat: 34.0219, lon: -118.2831, description: "USC’s collection of rare books, archives, and art.", image: "https://example.com/usc.jpg", link: "https://libraries.usc.edu" },
+            { name: "Mission San Gabriel Arcángel", lat: 34.0964, lon: -118.1057, description: "A historic mission founded in 1771.", image: "https://example.com/mission.jpg", link: "https://missionsangabriel.com" },
+            { name: "The Huntington Library, Art Museum, and Botanical Gardens", lat: 34.1294, lon: -118.1144, description: "A research library with an extensive art collection.", image: "https://example.com/huntington.jpg", link: "https://huntington.org" },
+            { name: "El Pueblo de Los Angeles Historical Monument", lat: 34.0561, lon: -118.2385, description: "The birthplace of Los Angeles, with historic buildings and museums.", image: "https://example.com/el-pueblo.jpg", link: "https://elpueblo.lacity.org" }
         ];
 
-        var institutionMarkers = {}, themeLines = {};
+        institutions.forEach(function(location) {
+            var marker = L.circleMarker([location.lat, location.lon], {
+                radius: 6,
+                color: "#000000",
+                fillColor: themeColors["Partner Institutions"],
+                fillOpacity: 1,
+                weight: 2
+            }).addTo(map);
 
-        function addPoints() {
-            institutions.forEach(function(location) {
-                var tooltipDirection = location.name === "USC Special Collections and USC Fisher Museum of Art" ? "left" : "right";
+            var popupContent = `<b>${location.name}</b><br><br>
+                                <p>${location.description}</p>
+                                <img src="${location.image}" class="popup-image"><br>
+                                <a href="${location.link}" target="_blank">More Info</a>`;
 
-                var marker = L.circleMarker([location.lat, location.lon], {
-                    radius: 6,
-                    color: "#000000",
-                    fillColor: themeColors["Partner Institutions"],
-                    fillOpacity: 1,
-                    weight: 2
-                }).addTo(map);
-
-                marker.bindTooltip(location.name, {
-                    permanent: true,
-                    direction: tooltipDirection,
-                    className: "leaflet-tooltip"
-                });
-
-                institutionMarkers[location.name] = marker;
-            });
-        }
-
-        function updateFilter() {
-            var selectedTheme = document.querySelector('input[name="theme-filter"]:checked').value;
-
-            Object.values(themeLines).forEach(line => map.removeLayer(line));
-            themeLines = {};
-
-            Object.keys(institutionMarkers).forEach(name => {
-                var marker = institutionMarkers[name];
-                var location = institutions.find(loc => loc.name === name);
-                var matchesTheme = location.themes.includes(selectedTheme);
-
-                marker.setStyle({
-                    fillColor: matchesTheme ? themeColors[selectedTheme] : themeColors["Partner Institutions"],
-                    fillOpacity: matchesTheme ? 1 : 0.3,
-                    radius: matchesTheme ? 10 : 6
-                });
-            });
-        }
-
-        document.querySelectorAll('input[name="theme-filter"]').forEach(input => {
-            input.addEventListener('change', updateFilter);
+            marker.bindPopup(popupContent);
         });
 
-        addPoints();
-        updateFilter();
     </script>
 
 </body>
