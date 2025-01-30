@@ -74,7 +74,7 @@
         var geojsonLayer;
 
         function loadGeoJSON() {
-            fetch('la2026_data.geojson')
+            fetch('https://raw.githubusercontent.com/visualizela/LA2026/refs/heads/main/la2026_data.geojson')
                 .then(response => response.json())
                 .then(data => {
                     geojsonLayer = L.geoJSON(data, {
