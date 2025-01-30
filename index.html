@@ -31,7 +31,27 @@
             border-radius: 8px;
             z-index: 1000;
             font-family: Arial, sans-serif;
-            width: 300px;
+            width: 350px;
+        }
+        .popup-box {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px;
+            border-radius: 8px;
+            z-index: 1000;
+            font-family: Arial, sans-serif;
+            width: 280px;
+            display: none;
+            text-align: center;
+        }
+        .popup-image {
+            width: 100%;
+            max-width: 250px;
+            height: auto;
+            border-radius: 5px;
+            margin-top: 10px;
         }
         .leaflet-tooltip {
             font-size: 12px;
@@ -60,6 +80,10 @@
         <p id="info-text">Welcome to LA 2026. Please explore our partner institutions.</p>
     </div>
 
+    <div class="popup-box" id="popup-box">
+        <p id="popup-content"></p>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([34.0575, -118.2061], 11);
@@ -68,74 +92,36 @@
             attribution: "Mapbox"
         }).addTo(map);
 
-        var themeColors = {
-            "Partner Institutions": "#004d00",  // Darker Green
-            "Indigenous History": "#FFA500",  // Orange
-            "Rebellions": "#FF0000",  // Red
-            "Path to Liberty": "#00BFFF",  // Cyan/Blue
-            "Environment": "#32CD32",  // Green
-            "Anniversaries": "#800080"  // Purple
-        };
+        var institutions = [
+            { name: "Autry Museum of the American West", lat: 34.14857558, lon: -118.2813525, image: "https://raw.githubusercontent.com/visualizela/LA2026/refs/heads/main/photos/Autry2026.jpeg", themes: ["Indigenous History", "Rebellions", "Path to Liberty"] },
+            { name: "Natural History Museum of Los Angeles County", lat: 34.01707356, lon: -118.2885562, image: "https://raw.githubusercontent.com/visualizela/LA2026/refs/heads/main/photos/NHM2026.jpeg", themes: ["Rebellions", "Path to Liberty"] },
+            { name: "USC Special Collections and USC Fisher Museum of Art", lat: 34.02031271, lon: -118.2852662, image: "https://raw.githubusercontent.com/visualizela/LA2026/refs/heads/main/photos/USC2026.jpeg", themes: ["Path to Liberty", "Environment", "Anniversaries"] },
+            { name: "Mission San Gabriel Arcángel", lat: 34.09669521, lon: -118.1068304, image: "https://raw.githubusercontent.com/visualizela/LA2026/refs/heads/main/photos/MSG2026.jpeg", themes: ["Indigenous History", "Anniversaries"] },
+            { name: "The Huntington Library, Art Museum, and Botanical Gardens in San Marino", lat: 34.12905398, lon: -118.1145135, image: "https://raw.githubusercontent.com/visualizela/LA2026/refs/heads/main/photos/Huntington2026.jpeg", themes: ["Indigenous History", "Rebellions", "Environment", "Anniversaries"] },
+            { name: "El Pueblo de Los Angeles Historical Monument", lat: 34.05652447, lon: -118.2387577, image: "https://raw.githubusercontent.com/visualizela/LA2026/refs/heads/main/photos/Pueblo2026.jpeg", themes: ["Path to Liberty", "Environment", "Anniversaries"] }
+        ];
 
-        var geojsonLayer = L.geoJSON(geojsonData, {
-            pointToLayer: function(feature, latlng) {
-                var marker = L.circleMarker(latlng, {
-                    radius: 6,
-                    color: "#000000",
-                    fillColor: themeColors["Partner Institutions"],
-                    fillOpacity: 1,
-                    weight: 2
-                }).addTo(map);
+        institutions.forEach(function(inst) {
+            var marker = L.circleMarker([inst.lat, inst.lon], {
+                radius: 6,
+                color: "#000000",
+                fillColor: "#004d00",
+                fillOpacity: 1,
+                weight: 2
+            }).addTo(map);
 
-                // Add always-visible labels
-                marker.bindTooltip(feature.properties.name, {
-                    permanent: true,
-                    direction: "right",
-                    className: "leaflet-tooltip"
-                });
-
-                return marker;
-            }
-        }).addTo(map);
-
-        function updateFilter() {
-            var selectedTheme = document.querySelector('input[name="theme-filter"]:checked').value;
-
-            geojsonLayer.eachLayer(function(layer) {
-                var feature = layer.feature;
-                var matchesTheme = feature.properties.themes.includes(selectedTheme);
-                var newColor = matchesTheme ? themeColors[selectedTheme] : themeColors["Partner Institutions"];
-                var newSize = matchesTheme ? 10 : 6;
-
-                layer.setStyle({
-                    fillColor: newColor,
-                    color: newColor,
-                    fillOpacity: matchesTheme ? 1 : 0.3,
-                    radius: newSize
-                });
+            marker.bindTooltip(inst.name, {
+                permanent: true,
+                direction: "right",
+                className: "leaflet-tooltip"
             });
 
-            if (selectedTheme !== "Partner Institutions") {
-                var themeInstitutions = geojsonLayer.getLayers().filter(layer => layer.feature.properties.themes.includes(selectedTheme));
-                for (var i = 0; i < themeInstitutions.length - 1; i++) {
-                    var latlngs = [
-                        themeInstitutions[i].getLatLng(),
-                        themeInstitutions[i + 1].getLatLng()
-                    ];
-                    L.polyline(latlngs, {
-                        color: themeColors[selectedTheme],
-                        weight: 2,
-                        opacity: 0.7
-                    }).addTo(map);
-                }
-            }
-        }
-
-        document.querySelectorAll('input[name="theme-filter"]').forEach(input => {
-            input.addEventListener('change', updateFilter);
+            marker.on('click', function() {
+                var popupContent = `<b>${inst.name}</b><br><img src="${inst.image}" class="popup-image">`;
+                document.getElementById("popup-content").innerHTML = popupContent;
+                document.getElementById("popup-box").style.display = "block";
+            });
         });
-
-        updateFilter();
     </script>
 
 </body>
