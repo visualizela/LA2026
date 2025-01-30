@@ -14,8 +14,8 @@
         }
         .filter-box {
             position: absolute;
-            top: 10px;
-            left: 10px;
+            top: 20px;
+            left: 20px;
             background: rgba(255, 255, 255, 0.8);
             padding: 12px;
             border-radius: 8px;
@@ -24,22 +24,14 @@
         }
         .info-box {
             position: absolute;
-            bottom: 50px;
-            left: 10px;
+            bottom: 40px;
+            left: 40px;
             background: rgba(255, 255, 255, 0.6);
             padding: 12px;
             border-radius: 8px;
             z-index: 1000;
             font-family: Arial, sans-serif;
-            width: 350px;
-        }
-        .popup-image {
-            width: 100%;
-            max-width: 250px;
-            height: auto;
-            border-radius: 5px;
-            display: block;
-            margin: 10px auto;
+            width: 250px;
         }
         .leaflet-tooltip {
             font-size: 12px;
@@ -77,28 +69,17 @@
         }).addTo(map);
 
         var themeColors = {
-            "Partner Institutions": "#005500",  
-            "Indigenous History": "#FFA500",  
-            "Rebellions": "#FF0000",  
-            "Path to Liberty": "#00BFFF",  
-            "Environment": "#32CD32",  
-            "Anniversaries": "#800080"  
+            "Partner Institutions": "#004d00",  // Darker Green
+            "Indigenous History": "#FFA500",  // Orange
+            "Rebellions": "#FF0000",  // Red
+            "Path to Liberty": "#00BFFF",  // Cyan/Blue
+            "Environment": "#32CD32",  // Green
+            "Anniversaries": "#800080"  // Purple
         };
 
-        var institutions = [
-            { name: "Autry Museum of the American West", lat: 34.1486, lon: -118.2851, themes: ["Indigenous History", "Rebellions", "Path to Liberty"] },
-            { name: "Natural History Museum of Los Angeles County", lat: 34.0168, lon: -118.2889, themes: ["Rebellions", "Path to Liberty"] },
-            { name: "USC Special Collections and USC Fisher Museum of Art", lat: 34.0219, lon: -118.2831, themes: ["Path to Liberty", "Environment", "Anniversaries"] },
-            { name: "Mission San Gabriel Arcángel", lat: 34.0964, lon: -118.1057, themes: ["Indigenous History", "Anniversaries"] },
-            { name: "The Huntington Library, Art Museum, and Botanical Gardens", lat: 34.1294, lon: -118.1144, themes: ["Indigenous History", "Rebellions", "Environment", "Anniversaries"] },
-            { name: "El Pueblo de Los Angeles Historical Monument", lat: 34.0561, lon: -118.2385, themes: ["Path to Liberty", "Environment", "Anniversaries"] }
-        ];
-
-        var institutionMarkers = {}, themeLines = {};
-
-        function addPoints() {
-            institutions.forEach(function(location) {
-                var marker = L.circleMarker([location.lat, location.lon], {
+        var geojsonLayer = L.geoJSON(geojsonData, {
+            pointToLayer: function(feature, latlng) {
+                var marker = L.circleMarker(latlng, {
                     radius: 6,
                     color: "#000000",
                     fillColor: themeColors["Partner Institutions"],
@@ -106,40 +87,54 @@
                     weight: 2
                 }).addTo(map);
 
-                marker.bindTooltip(location.name, {
+                // Add always-visible labels
+                marker.bindTooltip(feature.properties.name, {
                     permanent: true,
                     direction: "right",
                     className: "leaflet-tooltip"
                 });
 
-                institutionMarkers[location.name] = marker;
-            });
-        }
+                return marker;
+            }
+        }).addTo(map);
 
         function updateFilter() {
             var selectedTheme = document.querySelector('input[name="theme-filter"]:checked').value;
 
-            Object.values(themeLines).forEach(line => map.removeLayer(line));
-            themeLines = {};
+            geojsonLayer.eachLayer(function(layer) {
+                var feature = layer.feature;
+                var matchesTheme = feature.properties.themes.includes(selectedTheme);
+                var newColor = matchesTheme ? themeColors[selectedTheme] : themeColors["Partner Institutions"];
+                var newSize = matchesTheme ? 10 : 6;
 
-            Object.keys(institutionMarkers).forEach(name => {
-                var marker = institutionMarkers[name];
-                var location = institutions.find(loc => loc.name === name);
-                var matchesTheme = location.themes.includes(selectedTheme);
-
-                marker.setStyle({
-                    fillColor: matchesTheme ? themeColors[selectedTheme] : themeColors["Partner Institutions"],
+                layer.setStyle({
+                    fillColor: newColor,
+                    color: newColor,
                     fillOpacity: matchesTheme ? 1 : 0.3,
-                    radius: matchesTheme ? 10 : 6
+                    radius: newSize
                 });
             });
+
+            if (selectedTheme !== "Partner Institutions") {
+                var themeInstitutions = geojsonLayer.getLayers().filter(layer => layer.feature.properties.themes.includes(selectedTheme));
+                for (var i = 0; i < themeInstitutions.length - 1; i++) {
+                    var latlngs = [
+                        themeInstitutions[i].getLatLng(),
+                        themeInstitutions[i + 1].getLatLng()
+                    ];
+                    L.polyline(latlngs, {
+                        color: themeColors[selectedTheme],
+                        weight: 2,
+                        opacity: 0.7
+                    }).addTo(map);
+                }
+            }
         }
 
         document.querySelectorAll('input[name="theme-filter"]').forEach(input => {
             input.addEventListener('change', updateFilter);
         });
 
-        addPoints();
         updateFilter();
     </script>
 
