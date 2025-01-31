@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -96,6 +97,24 @@
 
         var themeLines = [];
 
+        institutions.forEach(inst => {
+            var marker = L.circleMarker([inst.lat, inst.lon], {
+                radius: 6,
+                color: "#000000",
+                fillColor: themeColors["Partner Institutions"],
+                fillOpacity: 1,
+                weight: 2
+            }).addTo(map);
+
+            marker.bindTooltip(inst.name, {
+                permanent: true,
+                direction: inst.name.includes("USC") ? "left" : "right",
+                className: "leaflet-tooltip"
+            });
+
+            inst.marker = marker;
+        });
+
         function updateFilter() {
             var selectedTheme = document.querySelector('input[name="theme-filter"]:checked').value;
 
@@ -114,22 +133,6 @@
                     radius: size
                 });
             });
-
-            if (selectedTheme !== "Partner Institutions") {
-                var themeInstitutions = institutions.filter(inst => inst.themes.includes(selectedTheme));
-                for (var i = 0; i < themeInstitutions.length - 1; i++) {
-                    var latlngs = [
-                        [themeInstitutions[i].lat, themeInstitutions[i].lon],
-                        [themeInstitutions[i + 1].lat, themeInstitutions[i + 1].lon]
-                    ];
-                    var line = L.polyline(latlngs, {
-                        color: themeColors[selectedTheme],
-                        weight: 2,
-                        opacity: 0.7
-                    }).addTo(map);
-                    themeLines.push(line);
-                }
-            }
 
             document.getElementById("info-text").textContent = themeDescriptions[selectedTheme] || "Welcome to LA 2026.";
         }
