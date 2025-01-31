@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -34,12 +33,33 @@
             font-family: Arial, sans-serif;
             width: 350px;
         }
+        .popup-box {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px;
+            border-radius: 8px;
+            z-index: 1000;
+            font-family: Arial, sans-serif;
+            width: 280px;
+            display: none;
+            text-align: center;
+        }
+        .popup-image {
+            width: 100%;
+            max-width: 250px;
+            height: auto;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
         .leaflet-tooltip {
             font-size: 12px;
-            font-weight: normal;
-            background: rgba(255, 255, 255, 0.7);
-            padding: 2px 5px;
-            border-radius: 3px;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 4px 6px;
+            border-radius: 4px;
+            border: 1px solid black;
         }
     </style>
 </head>
@@ -86,16 +106,15 @@
             "Anniversaries": "#800080"
         };
 
-        var institutions = [
-            { name: "Autry Museum of the American West", lat: 34.14857558, lon: -118.2813525, themes: ["Indigenous History", "Rebellions", "Path to Liberty"] },
-            { name: "Natural History Museum of Los Angeles County", lat: 34.01707356, lon: -118.2885562, themes: ["Rebellions", "Path to Liberty"] },
-            { name: "USC Special Collections and USC Fisher Museum of Art", lat: 34.02031271, lon: -118.2852662, themes: ["Path to Liberty", "Environment", "Anniversaries"] },
-            { name: "Mission San Gabriel Arcángel", lat: 34.09669521, lon: -118.1068304, themes: ["Indigenous History", "Anniversaries"] },
-            { name: "The Huntington Library, Art Museum, and Botanical Gardens in San Marino", lat: 34.12905398, lon: -118.1145135, themes: ["Indigenous History", "Rebellions", "Environment", "Anniversaries"] },
-            { name: "El Pueblo de Los Angeles Historical Monument", lat: 34.05652447, lon: -118.2387577, themes: ["Path to Liberty", "Environment", "Anniversaries"] }
-        ];
-
         var themeLines = [];
+        var institutions = [
+            {name: "Autry Museum of the American West", lat: 34.14857558, lon: -118.2813525, themes: ["Indigenous History", "Rebellions", "Path to Liberty"]},
+            {name: "Natural History Museum of Los Angeles County", lat: 34.01707356, lon: -118.2885562, themes: ["Rebellions", "Path to Liberty"]},
+            {name: "USC Special Collections and USC Fisher Museum of Art", lat: 34.02031271, lon: -118.2852662, themes: ["Path to Liberty", "Environment", "Anniversaries"]},
+            {name: "Mission San Gabriel Arcángel", lat: 34.09669521, lon: -118.1068304, themes: ["Indigenous History", "Anniversaries"]},
+            {name: "The Huntington Library, Art Museum, and Botanical Gardens in San Marino", lat: 34.12905398, lon: -118.1145135, themes: ["Indigenous History", "Rebellions", "Environment", "Anniversaries"]},
+            {name: "El Pueblo de Los Angeles Historical Monument", lat: 34.05652447, lon: -118.2387577, themes: ["Path to Liberty", "Environment", "Anniversaries"]}
+        ];
 
         institutions.forEach(inst => {
             var marker = L.circleMarker([inst.lat, inst.lon], {
@@ -108,33 +127,20 @@
 
             marker.bindTooltip(inst.name, {
                 permanent: true,
-                direction: inst.name.includes("USC") ? "left" : "right",
+                direction: "right",
                 className: "leaflet-tooltip"
+            });
+
+            marker.on('click', function() {
+                var popupContent = `<b>${inst.name}</b><br><img src="https://raw.githubusercontent.com/visualizela/LA2026/refs/heads/main/photos/${inst.name.replace(/\s+/g, '')}2026.jpeg" class="popup-image">`;
+                document.getElementById("info-text").innerHTML = popupContent;
             });
 
             inst.marker = marker;
         });
 
         function updateFilter() {
-            var selectedTheme = document.querySelector('input[name="theme-filter"]:checked').value;
-
-            themeLines.forEach(line => map.removeLayer(line));
-            themeLines = [];
-
-            institutions.forEach(inst => {
-                var matchesTheme = inst.themes.includes(selectedTheme);
-                var color = matchesTheme ? themeColors[selectedTheme] : themeColors["Partner Institutions"];
-                var size = matchesTheme ? 10 : 6;
-
-                inst.marker.setStyle({
-                    fillColor: color,
-                    color: "#000000",
-                    fillOpacity: matchesTheme ? 1 : 0.3,
-                    radius: size
-                });
-            });
-
-            document.getElementById("info-text").textContent = themeDescriptions[selectedTheme] || "Welcome to LA 2026.";
+            document.getElementById("info-text").textContent = themeDescriptions[document.querySelector('input[name="theme-filter"]:checked').value] || "Welcome to LA 2026.";
         }
 
         document.querySelectorAll('input[name="theme-filter"]').forEach(input => {
